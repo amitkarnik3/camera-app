@@ -22,6 +22,13 @@
 <filter id="convolve">
     <feConvolveMatrix order="3" kernelMatrix="1 -1  1 -1 -0.01 -1 1 -1 1" edgeMode="duplicate" result="convo" />
 </filter>
+<filter id="blackandwhite">
+<feColorMatrix values="0.3333 0.3333 0.3333 0 0
+                                 0.3333 0.3333 0.3333 0 0
+                                0.3333 0.3333 0.3333 0 0
+                                0      0      0      1 0"/>
+</filter>
+
 <script src="https://cdn.webrtc-experiment.com/RecordRTC.js"></script>
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <script>
@@ -41,9 +48,9 @@
         video.muted = false;
         video.volume = 1;
         video.src = URL.createObjectURL(recorder.getBlob());
-        video.style.webkitFilter = 'url(#convolve)';
-        video.style.mozFilter = 'url(#convolve)';
-        video.style.filter = 'url(#convolve)';
+        video.style.webkitFilter = 'url(#blackandwhite)';
+        video.style.mozFilter = 'url(#blackandwhite)';
+        video.style.filter = 'url(#blackandwhite)';
         recorder.camera.stop();
         recorder.destroy();
         recorder = null;
