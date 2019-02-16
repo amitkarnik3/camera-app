@@ -1,88 +1,79 @@
-// Main initialization
-document.addEventListener('DOMContentLoaded', function () {
-    // Global variables
+<style>
+    html,
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+</style>
+
+<title>Video Recording | RecordRTC</title>
+<h1>Simple Video Recording using RecordRTC</h1>
+
+<br>
+
+<button id="btn-start-recording">Start Recording</button>
+<button id="btn-stop-recording" disabled>Stop Recording</button>
+
+<hr>
+<video controls autoplay playsinline></video>
+<filter id="displacement" x="0%" y="0%" height="100%" width="100%">
+    <feDisplacementMap scale="100" in2="SourceGraphic" xChannelSelector="G" />
+</filter>
+
+<script src="https://cdn.webrtc-experiment.com/RecordRTC.js"></script>
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+<script>
     var video = document.querySelector('video');
-    var audio, audioType;
-    var canvas = document.querySelector('canvas');
-    var context = canvas.getContext('2d');
-    // Custom video filters
-    var iFilter = 0;
-    var filters = [
-        'grayscale',
-        'sepia',
-        'blur',
-        'brightness',
-        'contrast',
-        'hue-rotate',
-        'hue-rotate2',
-        'hue-rotate3',
-        'saturate',
-        'invert',
-        'none'
-    ];
-    // Get the video stream from the camera with getUserMedia
-    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ||
-        navigator.mozGetUserMedia || navigator.msGetUserMedia;
-    window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
-    if (navigator.getUserMedia) {
-        // Evoke getUserMedia function
-        navigator.getUserMedia({ video: true, audio: true }, onSuccessCallback, onErrorCallback);
-        function onSuccessCallback(stream) {
-            // Use the stream from the camera as the source of the video element
-            video.src = window.URL.createObjectURL(stream) || stream;
-            // Autoplay
-            video.play();
-            // HTML5 Audio
-            audio = new Audio();
-            audioType = getAudioType(audio);
-            if (audioType) {
-                audio.src = 'polaroid.' + audioType;
-                audio.play();
-            }
-        }
-        // Display an error
-        function onErrorCallback(e) {
-            var expl = 'An error occurred: [Reason: ' + e.code + ']';
-            console.error(expl);
-            alert(expl);
-            return;
-        }
-    } else {
-        document.querySelector('.container').style.visibility = 'hidden';
-        document.querySelector('.warning').style.visibility = 'visible';
-        return;
+
+    function captureCamera(callback) {
+        navigator.mediaDevices.getUserMedia({ audio: true, video: true }).then(function (camera) {
+            callback(camera);
+        }).catch(function (error) {
+            alert('Unable to capture your camera. Please check console logs.');
+            console.error(error);
+        });
     }
-    // Draw the video stream at the canvas object
-    function drawVideoAtCanvas(obj, context) {
-        window.setInterval(function () {
-            context.drawImage(obj, 0, 0);
-        }, 60);
+
+    function stopRecordingCallback() {
+        video.src = video.srcObject = null;
+        video.muted = false;
+        video.volume = 1;
+        video.src = URL.createObjectURL(recorder.getBlob());
+        video.style.webkitFilter = 'url(#displacement)';
+        video.style.mozFilter = 'url(#displacement)';
+        video.style.filter = 'url(#displacement)'
+        recorder.camera.stop();
+        recorder.destroy();
+        recorder = null;
     }
-    // The canPlayType() function doesn’t return true or false. In recognition of how complex
-    // formats are, the function returns a string: 'probably', 'maybe' or an empty string.
-    function getAudioType(element) {
-        if (element.canPlayType) {
-            if (element.canPlayType('audio/mp4; codecs="mp4a.40.5"') !== '') {
-                return ('aac');
-            } else if (element.canPlayType('audio/ogg; codecs="vorbis"') !== '') {
-                return ("ogg");
-            }
-        }
-        return false;
-    }
-    // Add event listener for our video's Play function in order to produce video at the canvas
-    video.addEventListener('play', function () {
-        drawVideoAtCanvas(this, context);
-    }, false);
-    // Add event listener for our Button (to switch video filters)
-    document.querySelector('button').addEventListener('click', function () {
-        video.className = '';
-        canvas.className = '';
-        var effect = filters[iFilter++ % filters.length]; // Loop through the filters.
-        if (effect) {
-            video.classList.add(effect);
-            canvas.classList.add(effect);
-            document.querySelector('.container h3').innerHTML = 'Current filter is: ' + effect;
-        }
-    }, false);
-}, false);
+
+    var recorder; // globally accessible
+
+    document.getElementById('btn-start-recording').onclick = function () {
+        this.disabled = true;
+        captureCamera(function (camera) {
+            video.muted = true;
+            video.volume = 0;
+            video.srcObject = camera;
+
+            recorder = RecordRTC(camera, {
+                type: 'video'
+            });
+
+            recorder.startRecording();
+
+            // release camera on stopRecording
+            recorder.camera = camera;
+
+            document.getElementById('btn-stop-recording').disabled = false;
+        });
+    };
+
+    document.getElementById('btn-stop-recording').onclick = function () {
+        this.disabled = true;
+        recorder.stopRecording(stopRecordingCallback);
+    };
+</script>
+
+<footer style="margin-top: 20px;"><small id="send-message"></small></footer>
+<script src="https://cdn.webrtc-experiment.com/common.js"></script>
