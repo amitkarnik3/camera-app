@@ -62,9 +62,9 @@
             video.muted = true;
             video.volume = 0;
             video.srcObject = camera;
-            video.style.webkitFilter = 'url(#blackandwhite)';
-            video.style.mozFilter = 'url(#blackandwhite)';
-            video.style.filter = 'url(#blackandwhite)';
+            video.className = '';
+            video.classList.add(effect);
+
             recorder = RecordRTC(camera, {
                 type: 'video'
             });
