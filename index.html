@@ -19,7 +19,9 @@
 <filter id="displacement" x="0%" y="0%" height="100%" width="100%">
     <feDisplacementMap scale="100" in2="SourceGraphic" xChannelSelector="G" />
 </filter>
-
+<filter id="convolve">
+    <feConvolveMatrix order="3" kernelMatrix="1 -1  1 -1 -0.01 -1 1 -1 1" edgeMode="duplicate" result="convo" />
+</filter>
 <script src="https://cdn.webrtc-experiment.com/RecordRTC.js"></script>
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <script>
@@ -39,9 +41,9 @@
         video.muted = false;
         video.volume = 1;
         video.src = URL.createObjectURL(recorder.getBlob());
-        video.style.webkitFilter = 'url(#displacement)';
-        video.style.mozFilter = 'url(#displacement)';
-        video.style.filter = 'url(#displacement)';
+        video.style.webkitFilter = 'url(#convolve)';
+        video.style.mozFilter = 'url(#convolve)';
+        video.style.filter = 'url(#convolve)';
         recorder.camera.stop();
         recorder.destroy();
         recorder = null;
